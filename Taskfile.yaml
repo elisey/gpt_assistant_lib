@@ -1,0 +1,42 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  mypy:
+    cmds:
+      - mypy gpt_assistant_lib
+  black:fix:
+    cmds:
+      - black .
+  black:check:
+    cmds:
+      - black --check .
+  isort:fix:
+    cmds:
+      - isort .
+  isort:check:
+    cmds:
+      - isort --check .
+  flake8:
+    cmds:
+      - flake8 .
+  ruff:
+    cmds:
+      - ruff .
+  format:
+    - task: black:fix
+    - task: isort:fix
+  test:
+    cmds:
+      - pytest .
+  lint:
+    deps:
+      - task: black:check
+      - task: isort:check
+      - task: mypy
+      - task: flake8
+      - task: ruff
+  all:
+    - task: lint
+    - task: test
