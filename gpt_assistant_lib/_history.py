@@ -10,7 +10,7 @@ class Role(enum.StrEnum):
     USER = "user"
 
 
-@dt.dataclass
+@dt.dataclass(frozen=True)
 class HistoryEntry:
     role: Role
     content: str
@@ -42,6 +42,7 @@ class SimpleHistory(HistoryInterface):
         self._ttl = ttl
 
     def init_system_content(self, content: str) -> None:
+        assert self._system_content is None, "System content is already initialized."
         self._system_content = content
 
     @staticmethod
@@ -56,18 +57,15 @@ class SimpleHistory(HistoryInterface):
     def __compress(self) -> None:
         to_remove = len(self._history) - self._max_size
         if to_remove > 0:
-            del self._history[:to_remove]
+            self._history = self._history[to_remove:]
 
     def __remove_expired(self) -> None:
-        new_history = []
-        for item in self._history:
-            if item.timestamp + datetime.timedelta(seconds=self._ttl) > self.__now():
-                new_history.append(item)
-        self._history = new_history
+        cutoff_time = self.__now() - datetime.timedelta(seconds=self._ttl)
+        self._history = [entry for entry in self._history if entry.timestamp >= cutoff_time]
 
     def insert(self, role: Role, content: str) -> None:
-        if role == Role.SYSTEM:
-            raise ValueError("Can't insert system role entry. Use init_system_content function.")
+        assert role != Role.SYSTEM, "Cannot insert a system role entry. Use init_system_content function."
+
         entry = HistoryEntry(role=role, content=content, timestamp=self.__now())
         self._history.append(entry)
         self.__compress()
@@ -82,9 +80,9 @@ class SimpleHistory(HistoryInterface):
     def get(self) -> list[dict[str, str]]:
         self.__remove_expired()
         history = self.__get_combined_history()
-        return [item.get_representation() for item in history]
+        return [entry.get_representation() for entry in history]
 
     def __str__(self) -> str:
         history = self.__get_combined_history()
-        entries = [f"{item.timestamp}, {item.role}: {item.content}." for item in history]
+        entries = [f"{entry.timestamp}, {entry.role}: {entry.content}." for entry in history]
         return "\n".join(entries)

@@ -1,18 +1,23 @@
+import sys
+
 import gpt_assistant_lib
 
 
-OPENAI_API_KEY = "your_openai_api_key"
-PROMPT = "You are helpful assistant"
-HISTORY_SIZE = 5
-TTL_S = 10 * 60
-
-
 def main() -> None:
-    assistant = gpt_assistant_lib.build_assistant(OPENAI_API_KEY, PROMPT, HISTORY_SIZE, TTL_S)
+    openai_api_key = "your_openai_api_key"
+    initial_prompt = "You are a helpful assistant."
+    max_history_size = 5
+    history_lifetime = 600  # 10 minutes
+    assistant = gpt_assistant_lib.build_assistant(openai_api_key, initial_prompt, max_history_size, history_lifetime)
     while True:
         user_input = input("You: ")
-        assistant_response = assistant.exchange("any", user_input)
-        print(f"Assistant: {assistant_response}")
+        try:
+            assistant_response = assistant.exchange("any", user_input)
+        except gpt_assistant_lib.OpenAICommunicationError as e:
+            print(f"Something went wrong. {e}")
+            sys.exit(1)
+        else:
+            print(f"Assistant: {assistant_response}")
 
 
 if __name__ == "__main__":

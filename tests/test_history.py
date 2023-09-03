@@ -44,8 +44,16 @@ def test_get_entries_no_system():
 
 def test_try_insert_system_role():
     history = SimpleHistory(max_size=5, ttl=600)
-    with pytest.raises(ValueError, match="Can't insert system role entry"):
+    with pytest.raises(AssertionError, match="Cannot insert a system role entry. Use init_system_content function."):
         history.insert(Role.SYSTEM, "System action")
+
+
+def test_try_init_system_role_twise():
+    history = SimpleHistory(max_size=5, ttl=600)
+    history.init_system_content("System initialized")
+    with pytest.raises(AssertionError, match="System content is already initialized."):
+        history.init_system_content("System initialized second time")
+    assert history.get() == [{"content": "System initialized", "role": "system"}]
 
 
 def test_history_compressed():
