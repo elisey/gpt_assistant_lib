@@ -27,7 +27,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 strict = true
-allow_untyped_calls = true
 
 [tool.black]
 line-length = 120

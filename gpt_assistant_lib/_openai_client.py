@@ -38,7 +38,9 @@ class OpenAI(OpenAIInterface):
         assert conversation
 
         try:
-            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=conversation)
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo", messages=conversation
+            )  # type:ignore[no-untyped-call]
             response: str = completion.choices[0].message.content
             return response
         except openai.OpenAIError as e:
